@@ -3,6 +3,8 @@ const path = require("path");
 // const fs = require("fs");
 const { readFromFile, readAndAppend } = require('./helpers/fsUtils');
 const db = require("./db/db.json");
+const { fstat, writeFile, readFile } = require("fs");
+const { json } = require("express");
 
 const PORT = 3001;
 const app = express();
@@ -11,6 +13,11 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static('public'));
+
+//GET route for any incorrect URLs
+app.get("*", (req, res) => {
+    res.sendFile(path.join(__dirname, "/public/index.html"))
+});
 
 //GET route for homepage
 app.get("/", (req, res) =>
@@ -24,20 +31,30 @@ app.get("/notes", (req, res) =>
 
 //Route to notes page for API
 app.get('/api/notes', (req, res) => {
-    console.info(`${req.method} request received for feedback`);
+    console.log(`${req.method} request received for feedback`);
 
-    readFromFile('./db/db.json').then((data) => res.json(JSON.parse(data)));
+    readFromFile("./db/db.json").then((data) => res.json(JSON.parse(data)));
 });
 
-// app.get('/api/notes/:id', (req, res) => {
-//     const requestedTerm = req.params.id.toLowerCase();
+app.post("/api/notes", (req, res) => {
+    // console.log(`${JSON.stringify(req.body)} has been added to database`);
+    
+    readFile("./db/db.json", "utf8", (err, data) => {
+        if (err) {
+            throw new err
+        } else {
+            let read = JSON.parse(data);
+            // console.log(read);
 
-//     for (let i = 0; i < db.length; i++) {
-//     if (requestedTerm === db[i].id.toLowerCase()) {
-//         return res.json(db[i]);
-//     }}
-//     return res.json('No match found');
-// });
+            read.push(req.body);
+            writeFile("./db/db.json", JSON.stringify(read), (err) => {
+                err ? console.error(err) : console.log("wrote to file!")
+            });
+            res.json(read);
+        }
+    });
+});
+
 
 //Listening to port 3001 
 app.listen(PORT, () => console.log(`Listening at http://localhost:${PORT}`));
