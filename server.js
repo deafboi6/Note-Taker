@@ -6,7 +6,7 @@ const db = require("./db/db.json");
 const { fstat, writeFile, readFile } = require("fs");
 const { json } = require("express");
 
-const PORT = process.env.port || 3001;
+const PORT = process.env.PORT || 3001;
 const app = express();
 
 //Middleware
@@ -56,5 +56,5 @@ app.post("/api/notes", (req, res) => {
 });
 
 
-//Listening to port 3001 
+//Listening to port 3001
 app.listen(PORT, () => console.log(`Listening at http://localhost:${PORT}`));
